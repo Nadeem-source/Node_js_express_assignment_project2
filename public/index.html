@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product CRUD App - Premium Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #f8fafc;
+      --accent: #10b981;
+      --danger: #ef4444;
+      --text: #1f2937;
+      --text-light: #6b7280;
+      --border: #e5e7eb;
+      --shadow: 0 10px 25px rgba(0,0,0,0.1);
+      --shadow-lg: 0 20px 40px rgba(0,0,0,0.15);
+      --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--secondary);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Header */
+    header {
+      background: var(--gradient);
+      color: white;
+      padding: 2rem 0;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      opacity: 0.1;
+    }
+
+    header .container {
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    /* Auth Section */
+    .auth-section {
+      background: white;
+      border-radius: 20px;
+      padding: 3rem;
+      margin: 2rem 0;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .auth-tab {
+      padding: 1rem 2rem;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-light);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .auth-tab.active {
+      color: var(--primary);
+    }
+
+    .auth-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--primary);
+    }
+
+    .auth-form {
+      display: none;
+    }
+
+    .auth-form.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 1rem;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .btn {
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: var(--gradient);
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-secondary {
+      background: var(--secondary);
+      color: var(--text);
+      border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--text);
+      color: white;
+    }
+
+    /* Dashboard */
+    .dashboard {
+      display: none;
+      margin-top: 2rem;
+    }
+
+    .dashboard.active {
+      display: block;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .dashboard-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .user-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+    }
+
+    /* Product Form */
+    .product-form {
+      background: white;
+      border-radius: 20px;
+      padding: 3rem;
+      margin-bottom: 3rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .file-input-wrapper:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .file-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    /* Product List */
+    .product-list {
+      background: white;
+      border-radius: 20px;
+      padding: 3rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+
+    .product-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      border: 1px solid var(--border);
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .product-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background: var(--secondary);
+    }
+
+    .product-info {
+      padding: 1.5rem;
+    }
+
+    .product-name {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .product-price {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .product-details {
+      color: var(--text-light);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .product-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-small {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      border-radius: 8px;
+    }
+
+    .btn-edit {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-delete {
+      background: var(--danger);
+      color: white;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      padding: 3rem;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-light);
+    }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .page-btn {
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--border);
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .page-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .page-btn:hover:not(.active) {
+      background: var(--secondary);
+    }
+
+    /* Loading */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid var(--border);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Alerts */
+    .alert {
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .alert-success {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      .dashboard-header { flex-direction: column; align-items: flex-start; }
+      .product-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .filters { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Product CRUD App</h1>
+      <p class="subtitle">Premium Product Management Dashboard</p>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Auth Section -->
+    <section id="auth-section" class="auth-section">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="showAuthTab('login')">Login</button>
+        <button class="auth-tab" onclick="showAuthTab('register')">Register</button>
+      </div>
+
+      <form id="login-form" class="auth-form active" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" name="email" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+      </form>
+
+      <form id="register-form" class="auth-form" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input type="text" class="form-input" name="name" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" name="email" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" name="password" required minlength="6">
+        </div>
+        <button type="submit" class="btn btn-primary">Register</button>
+      </form>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="dashboard" class="dashboard">
+      <div class="dashboard-header">
+        <h2 class="dashboard-title">Product Dashboard</h2>
+        <div class="user-info">
+          <div class="user-avatar" id="user-avatar">A</div>
+          <span id="user-name">Admin</span>
+          <button class="btn btn-secondary" onclick="logout()">Logout</button>
+        </div>
+      </div>
+
+      <!-- Product Form -->
+      <div class="product-form">
+        <h3>Add New Product</h3>
+        <form id="product-form" onsubmit="handleProductSubmit(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Product Name</label>
+              <input type="text" class="form-input" name="name" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Price</label>
+              <input type="number" class="form-input" name="price" step="0.01" min="0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Quantity</label>
+              <input type="number" class="form-input" name="quantity" min="0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Manufactured Date</label>
+              <input type="date" class="form-input" name="manufactured_date" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Product Image</label>
+            <div class="file-input-wrapper">
+              <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--text-light); margin-bottom: 0.5rem;"></i>
+              <p>Click to upload image</p>
+              <input type="file" class="file-input" name="image" accept="image/*">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Add Product</button>
+        </form>
+      </div>
+
+      <!-- Product List -->
+      <div class="product-list">
+        <div class="filters">
+          <input type="text" class="form-input" placeholder="Search products..." id="search-input" oninput="handleSearch()">
+          <input type="number" class="form-input" placeholder="Min Price" id="min-price" oninput="handleFilter()">
+          <input type="number" class="form-input" placeholder="Max Price" id="max-price" oninput="handleFilter()">
+          <input type="number" class="form-input" placeholder="Min Quantity" id="min-quantity" oninput="handleFilter()">
+          <input type="number" class="form-input" placeholder="Max Quantity" id="max-quantity" oninput="handleFilter()">
+          <input type="date" class="form-input" id="manufactured-date" oninput="handleFilter()">
+        </div>
+
+        <div id="alert-container"></div>
+
+        <div id="product-grid" class="product-grid">
+          <!-- Products will be loaded here -->
+        </div>
+
+        <div id="pagination" class="pagination">
+          <!-- Pagination will be loaded here -->
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="edit-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <h3>Edit Product</h3>
+      <form id="edit-form" onsubmit="handleEditSubmit(event)">
+        <input type="hidden" name="id">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Product Name</label>
+            <input type="text" class="form-input" name="name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Price</label>
+            <input type="number" class="form-input" name="price" step="0.01" min="0" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Quantity</label>
+            <input type="number" class="form-input" name="quantity" min="0" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Manufactured Date</label>
+            <input type="date" class="form-input" name="manufactured_date" required>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Product</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let token = localStorage.getItem('token');
+    let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+    let currentPage = 1;
+    let currentFilters = {};
+
+    // Initialize app
+    document.addEventListener('DOMContentLoaded', function() {
+      if (token && currentUser) {
+        showDashboard();
+      } else {
+        showAuth();
+      }
+    });
+
+    // Auth functions
+    function showAuthTab(tab) {
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+      document.querySelector(`.${tab === 'login' ? 'auth-tab:first-child' : 'auth-tab:last-child'}`).classList.add('active');
+      document.getElementById(`${tab}-form`).classList.add('active');
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const data = Object.fromEntries(formData);
+
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          token = result.token;
+          currentUser = result.user;
+          localStorage.setItem('token', token);
+          localStorage.setItem('user', JSON.stringify(currentUser));
+          showDashboard();
+          showAlert('Login successful!', 'success');
+        } else {
+          showAlert(result.error || 'Login failed', 'error');
+        }
+      } catch (error) {
+        showAlert('Network error', 'error');
+      }
+    }
+
+    async function handleRegister(event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const data = Object.fromEntries(formData);
+
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          showAlert('Registration successful! Please login.', 'success');
+          showAuthTab('login');
+        } else {
+          showAlert(result.error || 'Registration failed', 'error');
+        }
+      } catch (error) {
+        showAlert('Network error', 'error');
+      }
+    }
+
+    function logout() {
+      token = null;
+      currentUser = null;
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      showAuth();
+    }
+
+    // Dashboard functions
+    function showAuth() {
+      document.getElementById('auth-section').style.display = 'block';
+      document.getElementById('dashboard').classList.remove('active');
+      document.getElementById('user-avatar').textContent = 'A';
+      document.getElementById('user-name').textContent = 'Admin';
+    }
+
+    function showDashboard() {
+      document.getElementById('auth-section').style.display = 'none';
+      document.getElementById('dashboard').classList.add('active');
+      document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+      document.getElementById('user-name').textContent = currentUser.name;
+      loadProducts();
+    }
+
+    // Product functions
+    async function handleProductSubmit(event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+
+      try {
+        const response = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          showAlert('Product added successfully!', 'success');
+          event.target.reset();
+          loadProducts();
+        } else {
+          showAlert(result.error || 'Failed to add product', 'error');
+        }
+      } catch (error) {
+        showAlert('Network error', 'error');
+      }
+    }
+
+    async function loadProducts(page = 1) {
+      currentPage = page;
+      const params = new URLSearchParams({ page, ...currentFilters });
+
+      try {
+        const response = await fetch(`/api/products?${params}`);
+        const result = await response.json();
+
+        if (response.ok) {
+          renderProducts(result.data);
+          renderPagination(result.pagination);
+        } else {
+          showAlert('Failed to load products', 'error');
+        }
+      } catch (error) {
+        showAlert('Network error', 'error');
+      }
+    }
+
+    function renderProducts(products) {
+      const grid = document.getElementById('product-grid');
+      grid.innerHTML = products.map(product => `
+        <div class="product-card">
+          <img src="${product.image_url || '/uploads/default-product.png'}" alt="${product.name}" class="product-image" onerror="this.src='/uploads/default-product.png'">
+          <div class="product-info">
+            <h4 class="product-name">${product.name}</h4>
+            <p class="product-price">$${product.price}</p>
+            <p class="product-details">Quantity: ${product.quantity}<br>Manufactured: ${new Date(product.manufactured_date).toLocaleDateString()}</p>
+            <div class="product-actions">
+              <button class="btn btn-small btn-edit" onclick="editProduct(${product.id})">Edit</button>
+              <button class="btn btn-small btn-delete" onclick="deleteProduct(${product.id})">Delete</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderPagination(pagination) {
+      const container = document.getElementById('pagination');
+      const { page, pages } = pagination;
+
+      let html = '';
+      for (let i = 1; i <= pages; i++) {
+        html += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="loadProducts(${i})">${i}</button>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function handleSearch() {
+      currentFilters.search = document.getElementById('search-input').value;
+      loadProducts(1);
+    }
+
+    function handleFilter() {
+      currentFilters.minPrice = document.getElementById('min-price').value;
+      currentFilters.maxPrice = document.getElementById('max-price').value;
+      currentFilters.minQuantity = document.getElementById('min-quantity').value;
+      currentFilters.maxQuantity = document.getElementById('max-quantity').value;
+      currentFilters.manufacturedDate = document.getElementById('manufactured-date').value;
+      loadProducts(1);
+    }
+
+    async function editProduct(id) {
+      try {
+        const response = await fetch(`/api/products/${id}`);
+        const product = await response.json();
+
+        if (response.ok) {
+          document.querySelector('#edit-form [name="id"]').value = product.id;
+          document.querySelector('#edit-form [name="name"]').value = product.name;
+          document.querySelector('#edit-form [name="price"]').value = product.price;
+          document.querySelector('#edit-form [name="quantity"]').value = product.quantity;
+          document.querySelector('#edit-form [name="manufactured_date"]').value = product.manufactured_date.split('T')[0];
+          document.getElementById('edit-modal').classList.add('active');
+        } else {
+          showAlert('Failed to load product', 'error');
+        }
+      } catch (error) {
+        showAlert('Network error', 'error');
+      }
+    }
+
+    async function handleEditSubmit(event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const id = formData.get('id');
+      const data = Object.fromEntries(formData);
+
+      try {
+        const response = await fetch(`/api/products/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          showAlert('Product updated successfully!', 'success');
+          closeModal();
+          loadProducts();
+        } else {
+          showAlert(result.error || 'Failed to update product', 'error');
+        }
+      } catch (error) {
+        showAlert('Network error', 'error');
+      }
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm('Are you sure you want to delete this product?')) return;
+
+      try {
+        const response = await fetch(`/api/products/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          showAlert('Product deleted successfully!', 'success');
+          loadProducts();
+        } else {
+          showAlert(result.error || 'Failed to delete product', 'error');
+        }
+      } catch (error) {
+        showAlert('Network error', 'error');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('edit-modal').classList.remove('active');
+    }
+
+    function showAlert(message, type) {
+      const container = document.getElementById('alert-container');
+      container.innerHTML = `<div class="alert alert-${type}"><i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>${message}</div>`;
+      setTimeout(() => container.innerHTML = '', 5000);
+    }
+  </script>
+</body>
+</html>
