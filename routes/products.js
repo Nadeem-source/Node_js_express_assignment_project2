@@ -17,15 +17,16 @@ const router = express.Router();
 router.get(
   '/',
   [
-    query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-    query('limit').optional().isInt({ min: 1 }).withMessage('Limit must be a positive integer'),
-    query('minPrice').optional().isFloat({ min: 0 }).withMessage('minPrice must be a valid number'),
-    query('maxPrice').optional().isFloat({ min: 0 }).withMessage('maxPrice must be a valid number'),
-    query('minQuantity').optional().isInt({ min: 0 }).withMessage('minQuantity must be a valid integer'),
-    query('maxQuantity').optional().isInt({ min: 0 }).withMessage('maxQuantity must be a valid integer'),
-    query('manufacturedDate').optional().isISO8601().withMessage('manufacturedDate must be a valid date'),
+    query('page').optional({ checkFalsy: true }).isInt({ min: 1 }).withMessage('Page must be a positive integer'),
+    query('limit').optional({ checkFalsy: true }).isInt({ min: 1 }).withMessage('Limit must be a positive integer'),
+    query('minPrice').optional({ checkFalsy: true }).isFloat({ min: 0 }).withMessage('minPrice must be a valid number'),
+    query('maxPrice').optional({ checkFalsy: true }).isFloat({ min: 0 }).withMessage('maxPrice must be a valid number'),
+    query('minQuantity').optional({ checkFalsy: true }).isInt({ min: 0 }).withMessage('minQuantity must be a valid integer'),
+    query('maxQuantity').optional({ checkFalsy: true }).isInt({ min: 0 }).withMessage('maxQuantity must be a valid integer'),
+    query('manufacturedDate').optional({ checkFalsy: true }).isISO8601().withMessage('manufacturedDate must be a valid date'),
   ],
   validateRequest,
+  protect,
   getProducts
 );
 

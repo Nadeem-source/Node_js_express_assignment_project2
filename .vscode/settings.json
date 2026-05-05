@@ -1,0 +1,4 @@
+{
+    "github.copilot.chat.languageContext.typescript.cacheTimeout": 30000,
+    "chat.tools.terminal.enforceTimeoutFromModel": false
+}

@@ -740,21 +740,49 @@
     async function handleProductSubmit(event) {
       event.preventDefault();
       const formData = new FormData(event.target);
+      const data = {
+        name: formData.get('name'),
+        price: parseFloat(formData.get('price')),
+        quantity: parseInt(formData.get('quantity')),
+        manufactured_date: formData.get('manufactured_date')
+      };
+      const imageFile = formData.get('image');
 
       try {
         const response = await fetch('/api/products', {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
-          body: formData
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
         });
 
         const result = await response.json();
         if (response.ok) {
+          const productId = result.productId;
+          
+          // Upload image if provided
+          if (imageFile && imageFile.size > 0) {
+            const imageFormData = new FormData();
+            imageFormData.append('image', imageFile);
+            
+            try {
+              await fetch(`/api/products/${productId}/image`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: imageFormData
+              });
+            } catch (imgErr) {
+              console.error('Image upload error:', imgErr);
+            }
+          }
+          
           showAlert('Product added successfully!', 'success');
           event.target.reset();
           loadProducts();
         } else {
-          showAlert(result.error || 'Failed to add product', 'error');
+          showAlert(result.error || result.errors?.[0]?.message || 'Failed to add product', 'error');
         }
       } catch (error) {
         showAlert('Network error', 'error');

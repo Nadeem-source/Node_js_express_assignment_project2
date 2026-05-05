@@ -30,47 +30,24 @@ async function softDeleteProduct(id, connection) {
 }
 
 async function findProducts(options) {
-  const baseQuery = [];
-  const params = [];
-  baseQuery.push('FROM products WHERE is_deleted = 0');
+  const connection = await pool.getConnection();
+  try {
+    const limit = Math.max(1, Number(options.limit) || 10);
+    const page = Math.max(1, Number(options.page) || 1);
+    const offset = (page - 1) * limit;
 
-  if (options.search) {
-    baseQuery.push('AND name LIKE ?');
-    params.push(`%${options.search}%`);
-  }
-  if (options.minPrice != null) {
-    baseQuery.push('AND price >= ?');
-    params.push(options.minPrice);
-  }
-  if (options.maxPrice != null) {
-    baseQuery.push('AND price <= ?');
-    params.push(options.maxPrice);
-  }
-  if (options.minQuantity != null) {
-    baseQuery.push('AND quantity >= ?');
-    params.push(options.minQuantity);
-  }
-  if (options.maxQuantity != null) {
-    baseQuery.push('AND quantity <= ?');
-    params.push(options.maxQuantity);
-  }
-  if (options.manufacturedDate) {
-    baseQuery.push('AND manufactured_date = ?');
-    params.push(options.manufacturedDate);
-  }
+    const [countRows] = await connection.query('SELECT COUNT(*) as total FROM products WHERE is_deleted = 0');
+    const total = countRows[0].total;
 
-  const countQuery = 'SELECT COUNT(*) as total ' + baseQuery.join(' ');
-  const [countRows] = await pool.execute(countQuery, params);
-  const total = countRows[0].total;
+    const [rows] = await connection.query(`SELECT id, name, quantity, manufactured_date, image_url, is_deleted, created_at FROM products WHERE is_deleted = 0 LIMIT ${limit} OFFSET ${offset}`);
 
-  const limit = Number(options.limit) || 10;
-  const page = Number(options.page) || 1;
-  const offset = (page - 1) * limit;
-
-  const selectQuery = 'SELECT * ' + baseQuery.join(' ') + ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-  const [rows] = await pool.execute(selectQuery, [...params, limit, offset]);
-
-  return { rows, total, page, limit };
+    return { rows, total, page, limit };
+  } catch (err) {
+    console.error('findProducts error:', err.message);
+    throw err;
+  } finally {
+    connection.release();
+  }
 }
 
 module.exports = {

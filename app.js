@@ -15,10 +15,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Product CRUD API is running' });
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.use('/api/auth', authRoutes);

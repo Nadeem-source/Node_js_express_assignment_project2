@@ -1,8 +1,7 @@
 const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv');
 const { findUserById } = require('../models/userModel');
 
-dotenv.config();
+
 
 async function protect(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -10,17 +9,21 @@ async function protect(req, res, next) {
     return res.status(401).json({ error: 'Authorization token missing or invalid' });
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = authHeader && authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await findUserById(decoded.id);
-    if (!user) {
-      return res.status(401).json({ error: 'Unauthorized: user not found' });
+    if (!user || user.deleted) {
+      return res.status(401).json({ error: 'Unauthorized user' });
     }
     req.user = user;
     next();
   } catch (err) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token expired' });
+    }
+
+    return res.status(401).json({ error: 'Invalid token' });
   }
 }
 

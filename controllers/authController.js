@@ -14,6 +14,14 @@ function generateToken(user) {
 async function registerUser(req, res, next) {
   try {
     const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
       return res.status(400).json({ error: 'Email is already registered' });
@@ -35,6 +43,14 @@ async function registerUser(req, res, next) {
 async function loginUser(req, res, next) {
   try {
     const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+
     const user = await findUserByEmail(email);
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });

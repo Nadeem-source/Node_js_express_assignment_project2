@@ -18,7 +18,13 @@ async function createProduct(req, res, next) {
       manufactured_date: req.body.manufactured_date,
       image_url: req.body.image_url || null,
     };
+    if (!req.body.name || !req.body.price || !req.body.quantity || !req.body.manufactured_date) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
 
+    if (isNaN(req.body.price) || isNaN(req.body.quantity)) {
+      return res.status(400).json({ error: "Price and Quantity must be numbers" });
+    }
     const insertId = await createProductModel(productData, connection);
     await connection.commit();
 
@@ -40,14 +46,19 @@ async function getProducts(req, res, next) {
       minQuantity: req.query.minQuantity != null ? Number(req.query.minQuantity) : null,
       maxQuantity: req.query.maxQuantity != null ? Number(req.query.maxQuantity) : null,
       manufacturedDate: req.query.manufacturedDate || null,
-      limit: req.query.limit || 10,
-      page: req.query.page || 1,
+      limit: req.query.limit ? Number(req.query.limit) : 10,
+      page: req.query.page ? Number(req.query.page) : 1,
     };
 
     const result = await findProducts(options);
     res.json({
       data: result.rows,
-      pagination: { total: result.total, page: result.page, limit: result.limit, pages: Math.ceil(result.total / result.limit) },
+      pagination: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        pages: Math.ceil(result.total / result.limit)
+      },
     });
   } catch (err) {
     next(err);
@@ -70,7 +81,7 @@ async function updateProduct(req, res, next) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    const existing = await getProductByIdModel(req.params.id);
+    const existing = await getProductByIdModel(req.params.id, connection);
     if (!existing) {
       await connection.rollback();
       return res.status(404).json({ error: 'Product not found' });
@@ -84,8 +95,11 @@ async function updateProduct(req, res, next) {
       image_url: req.body.image_url != null ? req.body.image_url : existing.image_url,
     };
 
-    const updatedRows = await updateProductModel(req.params.id, productData, connection);
-    if (!updatedRows) {
+    const updatedRows = await updateProductModel(
+      req.params.id,
+      { image_url: imageUrl },
+      connection
+    ); if (!updatedRows) {
       await connection.rollback();
       return res.status(400).json({ error: 'Unable to update product' });
     }
@@ -104,7 +118,7 @@ async function deleteProduct(req, res, next) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    const existing = await getProductByIdModel(req.params.id);
+    const existing = await getProductByIdModel(req.params.id, connection);
     if (!existing) {
       await connection.rollback();
       return res.status(404).json({ error: 'Product not found' });
