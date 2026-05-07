@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,8 +16,8 @@
       --text: #1f2937;
       --text-light: #6b7280;
       --border: #e5e7eb;
-      --shadow: 0 10px 25px rgba(0,0,0,0.1);
-      --shadow-lg: 0 20px 40px rgba(0,0,0,0.15);
+      --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.15);
       --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     }
@@ -71,7 +72,7 @@
       font-size: 3rem;
       font-weight: 700;
       margin-bottom: 0.5rem;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
 
     .subtitle {
@@ -298,11 +299,24 @@
       gap: 2rem;
     }
 
+    .loading-indicator {
+      display: none;
+      width: 100%;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
+      border-radius: 12px;
+      background: rgba(99, 102, 241, 0.08);
+      color: var(--primary-dark);
+      font-weight: 600;
+      text-align: center;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+    }
+
     .product-card {
       background: white;
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
       border: 1px solid var(--border);
     }
@@ -373,7 +387,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.5);
       z-index: 1000;
       animation: fadeIn 0.3s ease;
     }
@@ -397,13 +411,25 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
     }
 
     @keyframes slideUp {
-      from { transform: translateY(50px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      from {
+        transform: translateY(50px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
     .modal-close {
@@ -458,7 +484,9 @@
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     /* Alerts */
@@ -485,14 +513,30 @@
 
     /* Responsive */
     @media (max-width: 768px) {
-      h1 { font-size: 2rem; }
-      .dashboard-header { flex-direction: column; align-items: flex-start; }
-      .product-grid { grid-template-columns: 1fr; }
-      .form-row { grid-template-columns: 1fr; }
-      .filters { grid-template-columns: 1fr; }
+      h1 {
+        font-size: 2rem;
+      }
+
+      .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .product-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .filters {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
+
 <body>
   <header>
     <div class="container">
@@ -574,7 +618,8 @@
           <div class="form-group">
             <label class="form-label">Product Image</label>
             <div class="file-input-wrapper">
-              <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--text-light); margin-bottom: 0.5rem;"></i>
+              <i class="fas fa-cloud-upload-alt"
+                style="font-size: 2rem; color: var(--text-light); margin-bottom: 0.5rem;"></i>
               <p>Click to upload image</p>
               <input type="file" class="file-input" name="image" accept="image/*">
             </div>
@@ -586,7 +631,8 @@
       <!-- Product List -->
       <div class="product-list">
         <div class="filters">
-          <input type="text" class="form-input" placeholder="Search products..." id="search-input" oninput="handleSearch()">
+          <input type="text" class="form-input" placeholder="Search products..." id="search-input"
+            oninput="handleSearch()">
           <input type="number" class="form-input" placeholder="Min Price" id="min-price" oninput="handleFilter()">
           <input type="number" class="form-input" placeholder="Max Price" id="max-price" oninput="handleFilter()">
           <input type="number" class="form-input" placeholder="Min Quantity" id="min-quantity" oninput="handleFilter()">
@@ -595,6 +641,7 @@
         </div>
 
         <div id="alert-container"></div>
+        <div id="loading-indicator" class="loading-indicator">Loading products...</div>
 
         <div id="product-grid" class="product-grid">
           <!-- Products will be loaded here -->
@@ -642,9 +689,10 @@
     let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
     let currentPage = 1;
     let currentFilters = {};
+    let loadProductsTimeout = null;
 
     // Initialize app
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       if (token && currentUser) {
         showDashboard();
       } else {
@@ -751,7 +799,7 @@
       try {
         const response = await fetch('/api/products', {
           method: 'POST',
-          headers: { 
+          headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
@@ -761,12 +809,12 @@
         const result = await response.json();
         if (response.ok) {
           const productId = result.productId;
-          
+
           // Upload image if provided
           if (imageFile && imageFile.size > 0) {
             const imageFormData = new FormData();
             imageFormData.append('image', imageFile);
-            
+
             try {
               await fetch(`/api/products/${productId}/image`, {
                 method: 'POST',
@@ -777,7 +825,7 @@
               console.error('Image upload error:', imgErr);
             }
           }
-          
+
           showAlert('Product added successfully!', 'success');
           event.target.reset();
           loadProducts();
@@ -789,22 +837,38 @@
       }
     }
 
+    function showLoading() {
+      const loader = document.getElementById('loading-indicator');
+      if (loader) loader.style.display = 'block';
+    }
+
+    function hideLoading() {
+      const loader = document.getElementById('loading-indicator');
+      if (loader) loader.style.display = 'none';
+    }
+
     async function loadProducts(page = 1) {
       currentPage = page;
       const params = new URLSearchParams({ page, ...currentFilters });
+      const token = localStorage.getItem('token');
 
+      showLoading();
       try {
-        const response = await fetch(`/api/products?${params}`);
+        const response = await fetch(`/api/products?${params}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         const result = await response.json();
 
         if (response.ok) {
           renderProducts(result.data);
           renderPagination(result.pagination);
         } else {
-          showAlert('Failed to load products', 'error');
+          showAlert(result.error || 'Failed to load products', 'error');
         }
       } catch (error) {
         showAlert('Network error', 'error');
+      } finally {
+        hideLoading();
       }
     }
 
@@ -812,10 +876,10 @@
       const grid = document.getElementById('product-grid');
       grid.innerHTML = products.map(product => `
         <div class="product-card">
-          <img src="${product.image_url || '/uploads/default-product.png'}" alt="${product.name}" class="product-image" onerror="this.src='/uploads/default-product.png'">
-          <div class="product-info">
+           <img src="${product.image_url || '/uploads/default-product.png'}" onerror="this.onerror=null; this.src='/uploads/default-product.png';">
+            <div class="product-info">
             <h4 class="product-name">${product.name}</h4>
-            <p class="product-price">$${product.price}</p>
+            <p class="product-price">${product.price}</p>
             <p class="product-details">Quantity: ${product.quantity}<br>Manufactured: ${new Date(product.manufactured_date).toLocaleDateString()}</p>
             <div class="product-actions">
               <button class="btn btn-small btn-edit" onclick="editProduct(${product.id})">Edit</button>
@@ -837,9 +901,14 @@
       container.innerHTML = html;
     }
 
+    function debounceLoadProducts() {
+      clearTimeout(loadProductsTimeout);
+      loadProductsTimeout = setTimeout(() => loadProducts(1), 300);
+    }
+
     function handleSearch() {
       currentFilters.search = document.getElementById('search-input').value;
-      loadProducts(1);
+      debounceLoadProducts();
     }
 
     function handleFilter() {
@@ -848,7 +917,7 @@
       currentFilters.minQuantity = document.getElementById('min-quantity').value;
       currentFilters.maxQuantity = document.getElementById('max-quantity').value;
       currentFilters.manufacturedDate = document.getElementById('manufactured-date').value;
-      loadProducts(1);
+      debounceLoadProducts();
     }
 
     async function editProduct(id) {
@@ -932,4 +1001,5 @@
     }
   </script>
 </body>
+
 </html>
